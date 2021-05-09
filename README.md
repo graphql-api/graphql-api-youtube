@@ -1,7 +1,5 @@
 # api-youtube
 
-This library was generated with [Nx](https://nx.dev).
-
-## Running unit tests
-
-Run `nx test api-youtube` to execute the unit tests via [Jest](https://jestjs.io).
+- https://github.com/gladiatortoise/node-apiless-youtube-upload
+- https://github.com/googleapis/google-api-nodejs-client#getting-supported-apis
+- https://github.com/AryanshMahato/youtube-video-upload
