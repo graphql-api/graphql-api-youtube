@@ -2,47 +2,65 @@ import { GraphQLResolverMap } from 'apollo-graphql'
 import { ApolloError } from 'apollo-server-micro'
 import { OAuth2Client } from 'google-auth-library'
 import { google } from 'googleapis'
+import { YoutubeDataSource } from './dataSource'
 import { YoutubeVideo, YoutubeVideoUploadOptions } from './types'
 
-const OAuth2 = google.auth.OAuth2
-const youtube = google.youtube('v3')
-
-const SCOPES = [
-	'https://www.googleapis.com/auth/youtube.upload',
-	'https://www.googleapis.com/auth/youtube.readonly'
-]
-
-export const resolvers: GraphQLResolverMap<{ auth: OAuth2Client }> = {
-	Mutation: {
-		async googleAuth(root, args, { auth }, info) {
+export const resolvers: GraphQLResolverMap<{
+  dataSources: { youtube: YoutubeDataSource }
+}> = {
+  Query: {
+    async channel() {
+      return { name: 'test' }
+    },
+    async listChannels(root, args, { dataSources }) {
+      const channels = await dataSources.youtube.listChannels()
+      return channels
+    },
+    async listVideos(root, args, { dataSources }) {
+      const videos = await dataSources.youtube.listVideos()
+      return videos
+    }
+  },
+  Mutation: {
+    async getToken(root, args, { dataSources }) {
+      const { tokens } = await dataSources.youtube.getToken(args.input.code)
+      console.log(tokens)
+      return tokens
+    },
+    async generateAuthUrl(root, args, { dataSources }) {
+      const authUrl = await dataSources.youtube.generateAuthUrl()
+      return authUrl
+    }
+    /*
+    async googleAuth(root, args, { auth }, info) {
       const oauth2Client = new OAuth2(
         credentials.client_id,
         credentials.client_secret,
         credentials.redirect_uris[0]
-      );
-  
+      )
+
       // Check if we have previously stored a token.
       try {
-        const token = EnvConfig.getAuthToken();
-        const authToken = await oauth2Client.getToken(token);
-        oauth2Client.credentials = authToken.tokens;
-        return oauth2Client;
+        const token = EnvConfig.getAuthToken()
+        const authToken = await oauth2Client.getToken(token)
+        oauth2Client.credentials = authToken.tokens
+        return oauth2Client
       } catch (e) {
-        console.log(e);
-        return this.getNewToken(oauth2Client);
+        console.log(e)
+        return this.getNewToken(oauth2Client)
       }
-    };
     },
-		async getNewToken(root, args, { auth }) {
-			const authUrl = auth.generateAuthUrl({
-				access_type: 'offline',
-				scope: SCOPES
-			})
+    async getNewToken(root, args, { auth }) {
+      const authUrl = auth.generateAuthUrl({
+        access_type: 'offline',
+        scope: SCOPES
+      })
 
-			console.log('Authorize this app by visiting this url: ', authUrl)
-			return { authUrl }
-			// Save Auth token in Environment Variable
-		},
+      console.log('Authorize this app by visiting this url: ', authUrl)
+      return { authUrl }
+      // Save Auth token in Environment Variable
+    }
+    
 		async uploadYoutubeVideo(
 			root,
 			args: YoutubeVideoUploadOptions,
@@ -92,5 +110,6 @@ export const resolvers: GraphQLResolverMap<{ auth: OAuth2Client }> = {
 			}
 			return 
 		}
-	}
+		*/
+  }
 }
