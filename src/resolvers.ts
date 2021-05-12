@@ -5,6 +5,7 @@ import { google } from 'googleapis'
 import { YoutubeDataSource } from './dataSource'
 import { YoutubeVideo, YoutubeVideoUploadOptions } from './types'
 
+
 export const resolvers: GraphQLResolverMap<{
   dataSources: { youtube: YoutubeDataSource }
 }> = {
