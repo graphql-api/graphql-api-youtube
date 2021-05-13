@@ -2,26 +2,16 @@ import { GraphQLResolverMap } from 'apollo-graphql'
 import { ApolloError } from 'apollo-server-micro'
 import { OAuth2Client } from 'google-auth-library'
 import { google } from 'googleapis'
+
+import merge from 'lodash/merge'
 import { YoutubeDataSource } from './dataSource'
 import { YoutubeVideo, YoutubeVideoUploadOptions } from './types'
-
+import { resolvers as videoResolvers } from './Video/resolvers'
+import { resolvers as channelResolvers } from './Channel/resolvers'
 
 export const resolvers: GraphQLResolverMap<{
   dataSources: { youtube: YoutubeDataSource }
-}> = {
-  Query: {
-    async channel() {
-      return { name: 'test' }
-    },
-    async listChannels(root, args, { dataSources }) {
-      const channels = await dataSources.youtube.listChannels()
-      return channels
-    },
-    async listVideos(root, args, { dataSources }) {
-      const videos = await dataSources.youtube.listVideos()
-      return videos
-    }
-  },
+}> = merge(videoResolvers, channelResolvers, {
   Mutation: {
     async getToken(root, args, { dataSources }) {
       const { tokens } = await dataSources.youtube.getToken(args.input.code)
@@ -113,4 +103,4 @@ export const resolvers: GraphQLResolverMap<{
 		}
 		*/
   }
-}
+})

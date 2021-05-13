@@ -1,8 +1,10 @@
 import { gql } from 'apollo-server-core'
 import { URLTypeDefinition } from 'graphql-scalars'
+import { typeDefs as videoDefs } from './Video/typeDefs'
 
 export const typeDefs = gql`
   ${URLTypeDefinition}
+  ${videoDefs}
 
   type GoogleCredentials {
     refresh_token: String
@@ -17,28 +19,14 @@ export const typeDefs = gql`
     name: String
   }
 
-  type YoutubeVideo {
-    url: URL
-    title: String
-    description: String
-  }
-
-  input UploadYoutubeVideoInput {
-    title: String
-    description: String
-    privacyStatus: String
-  }
-
   type Query {
     channel(input: ChannelInput): YoutubeChannel
     listChannels(input: ListChannelInput): [YoutubeChannel]
-    listVideos: [YoutubeVideo]
   }
 
   type Mutation {
     generateAuthUrl: URL
     getToken(input: GetTokenInput): GoogleCredentials
-    uploadYoutubeVideo(input: UploadYoutubeVideoInput!): YoutubeVideo
   }
 
   input GetTokenInput {
