@@ -14,7 +14,9 @@ export interface YoutubeVideoUploadOptions {
   privacyStatus: string
 }
 
-export interface YoutubeVideo extends youtube_v3.Schema$Video {}
+export interface YoutubeVideo extends youtube_v3.Schema$Video {
+  url: String
+}
 
 export interface Credentials {
   client_id: string
@@ -28,3 +30,9 @@ export interface Credentials {
 }
 
 export interface IGoogleAuth {}
+
+export type Scope =
+  | 'https://www.googleapis.com/auth/youtubepartner'
+  | 'https://www.googleapis.com/auth/youtube'
+  | 'https://www.googleapis.com/auth/youtube.force-ssl'
+  | 'https://www.googleapis.com/auth/youtubepartner-channel-audit'
