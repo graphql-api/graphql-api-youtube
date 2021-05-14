@@ -2,9 +2,7 @@ import { DataSource } from 'apollo-datasource'
 import { KeyValueCache } from 'apollo-server-caching'
 import { OAuth2Client } from 'google-auth-library'
 import { google, youtube_v3, youtubeAnalytics_v2 } from 'googleapis'
-import { Credentials } from './types'
-// import CREDO from '../../../../credentials.json'
-import { sign } from 'jsonwebtoken'
+import { Credentials, Scope } from './types'
 
 const OAuth2 = google.auth.OAuth2
 const GoogleAuth = google.auth.GoogleAuth
@@ -24,8 +22,8 @@ export interface YoutubeDataSourceConfig<TContext> extends Credentials {
   cache: KeyValueCache
 }
 
-const SCOPES = [
-  // 'https://www.googleapis.com/auth/yt-analytics-monetary',
+const SCOPES: Scope[] = [
+  'https://www.googleapis.com/auth/youtube.force-ssl',
   'https://www.googleapis.com/auth/youtubepartner',
   'https://www.googleapis.com/auth/youtube',
   'https://www.googleapis.com/auth/youtubepartner-channel-audit'
@@ -39,7 +37,7 @@ type YoutubeDataSourceConstructor = {
 
 export class YoutubeDataSource<TContext = any> extends DataSource<TContext> {
   client: typeof google
-  private auth: OAuth2Client
+  auth: OAuth2Client
 
   get youtube(): youtube_v3.Youtube {
     return this.client.youtube('v3')
@@ -52,13 +50,11 @@ export class YoutubeDataSource<TContext = any> extends DataSource<TContext> {
   constructor({
     client_id,
     client_secret,
-    redirect_uri,
-    credentialsBase64
+    redirect_uri
   }: {
     client_id: string
     client_secret: string
     redirect_uri?: string
-    credentialsBase64?: string
   }) {
     super()
     // const credentialsString = unbase64(process.env.GOOGLE_CREDENTIALS)
@@ -83,45 +79,6 @@ export class YoutubeDataSource<TContext = any> extends DataSource<TContext> {
 
     this.client = google
     this.client.options({ auth: oauth2Client })
-
-    // google
-    //   .youtube('v3')
-    //   // .channels.list({
-    //   //   part: ['contentOwnerDetails'],
-    //   .playlists.list({
-    //     // part: ['contentDetails', 'id'],
-    //     // channelId: 'UCtFmdP2xug6Dwy6AIm8kFgw',
-    //     forUsername: 'lernezeichnen',
-
-    //     // onBehalfOfContentOwner: '116701463209545040319',
-    //     // managedByMe: true,
-    //     // channelId: 'UCtFmdP2xug6Dwy6AIm8kFgw',
-    //     auth
-    //   })
-    //   .then((data) => console.log(data, data?.data.items))
-    //   .catch((err) => {
-    //     console.log('ERROR', err)
-    // })
-    // try {
-    //   credentials = credentialsString
-    //     .replace('{ "', '')
-    //     .replace('" }', '')
-    //     .split('", "')
-    //     .map((part) => part.split('": "'))
-    //     .reduce((p, c) => ({ ...p, [c[0]]: c[1] }), {})
-    // } catch (err) {
-    //   console.log(err)
-    // } finally {
-    //   // console.log(credentials)
-    //   // const auth = new GoogleAuth({ credentials })
-    //   // google.options({ auth })
-    //   // this.client = google.youtube('v3')
-    //   // this.client.activities.list().then((data) => {
-    //   //   console.log('LIST', data)
-    //   // })
-    // }
-    // console.log('construct', client_id, client_secret, redirect_uri)
-    // this._auth = new OAuth2(client_id, client_secret, redirect_uri)
   }
 
   async generateAuthUrl() {
@@ -139,15 +96,21 @@ export class YoutubeDataSource<TContext = any> extends DataSource<TContext> {
     return token
   }
 
+  async search() {
+    return
+  }
+
   /** activities */
 
-  async listActivities() {}
+  async listActivities() {
+    return
+  }
 
   /** channels */
+
   async listChannels(
     args?: Omit<youtube_v3.Params$Resource$Channels$List, 'part'>
   ) {
-    console.log('LISTCHANNELS')
     const response = await this.youtube.channels.list({
       part: [
         'auditDetails',
@@ -161,18 +124,71 @@ export class YoutubeDataSource<TContext = any> extends DataSource<TContext> {
         'status',
         'topicDetails'
       ],
-
-      id: 'UCtFmdP2xug6Dwy6AIm8kFgw',
-      // mine: true,
+      mine: true,
       auth: this.auth
     })
-    console.log(response.data.items)
     return response.data.items
+  }
+
+  async updateChannel({
+    id,
+    brandingSettings,
+    localizations
+  }: youtube_v3.Schema$Channel) {
+    return this.youtube.channels.update({
+      requestBody: {
+        id,
+        brandingSettings,
+        localizations
+      }
+    })
+  }
+
+  async listChannelVideos({ username }: { username: string }) {
+    const contentDetails = await this.youtube.channels.list({
+      part: ['contentDetails'],
+      mine: true
+    })
+    const id =
+      contentDetails.data.items[0].contentDetails.relatedPlaylists.uploads
+    const videos = await this.youtube.playlistItems.list({ playlistId: id })
+    return videos.data.items
+  }
+
+  /** playlists */
+
+  async listPlaylists(
+    args?: youtube_v3.Params$Resource$Playlistitems$List
+  ): Promise<youtube_v3.Schema$Playlist[]> {
+    const playlists = await this.youtube.playlists.list({
+      part: ['contentDetails', 'snippet', 'localizations'],
+      ...args
+    })
+    return playlists.data.items
+  }
+
+  async listPlaylistItems(
+    args?: youtube_v3.Params$Resource$Playlistitems$List
+  ): Promise<youtube_v3.Schema$PlaylistItem[]> {
+    const playlistItems = await this.youtube.playlistItems.list({
+      part: ['id', 'contentDetails'],
+      ...args
+    })
+    return playlistItems.data.items
   }
 
   /** videos */
 
-  async listVideos(args): Promise<youtube_v3.Schema$Video[]> {
+  async listVideoCategories() {
+    const response = await this.youtube.videoCategories.list({
+      part: ['snippet']
+    })
+    return response.data.items
+  }
+
+  async listVideos(
+    args: youtube_v3.Params$Resource$Videos$List = { chart: 'mostPopular' }
+  ): Promise<youtube_v3.Schema$Video[]> {
     const response = await this.youtube.videos.list({
       part: [
         'contentDetails',
@@ -189,17 +205,17 @@ export class YoutubeDataSource<TContext = any> extends DataSource<TContext> {
         // 'suggestions',
         'topicDetails'
       ],
-     
-      auth: this.auth
+      ...args
       // onBehalfOfContentOwner: channelId
     })
-    console.log(response.data.items)
     return response.data.items
+  }
+
+  async getRating() {
+    return this.youtube.videos.getRating()
   }
 
   /** YouTube Analytics API */
 
   /** YouTube Reporting API */
 }
-
-const channelId = 'UCtFmdP2xug6Dwy6AIm8kFgw'
