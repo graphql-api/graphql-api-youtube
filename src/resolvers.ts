@@ -1,28 +1,31 @@
 import { GraphQLResolverMap } from 'apollo-graphql'
-import { ApolloError } from 'apollo-server-micro'
-import { OAuth2Client } from 'google-auth-library'
-import { google } from 'googleapis'
 
 import merge from 'lodash/merge'
 import { YoutubeDataSource } from './dataSource'
-import { YoutubeVideo, YoutubeVideoUploadOptions } from './types'
+import { scalarResolvers } from './scalars'
 import { resolvers as videoResolvers } from './Video/resolvers'
 import { resolvers as channelResolvers } from './Channel/resolvers'
+import { resolvers as playlistResolvers } from './Playlist/resolvers'
 
 export const resolvers: GraphQLResolverMap<{
   dataSources: { youtube: YoutubeDataSource }
-}> = merge(videoResolvers, channelResolvers, {
-  Mutation: {
-    async getToken(root, args, { dataSources }) {
-      const { tokens } = await dataSources.youtube.getToken(args.input.code)
-      console.log(tokens)
-      return tokens
-    },
-    async generateAuthUrl(root, args, { dataSources }) {
-      const authUrl = await dataSources.youtube.generateAuthUrl()
-      return authUrl
-    }
-    /*
+}> = merge(
+  scalarResolvers,
+  videoResolvers,
+  channelResolvers,
+  playlistResolvers,
+  {
+    Mutation: {
+      async getToken(root, args, { dataSources }) {
+        const { tokens } = await dataSources.youtube.getToken(args.input.code)
+        console.log(tokens)
+        return tokens
+      },
+      async generateAuthUrl(root, args, { dataSources }) {
+        const authUrl = await dataSources.youtube.generateAuthUrl()
+        return authUrl
+      }
+      /*
     async googleAuth(root, args, { auth }, info) {
       const oauth2Client = new OAuth2(
         credentials.client_id,
@@ -102,5 +105,6 @@ export const resolvers: GraphQLResolverMap<{
 			return 
 		}
 		*/
+    }
   }
-})
+)

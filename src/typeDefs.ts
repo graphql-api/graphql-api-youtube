@@ -1,10 +1,20 @@
 import { gql } from 'apollo-server-core'
-import { URLTypeDefinition } from 'graphql-scalars'
 import { typeDefs as videoDefs } from './Video/typeDefs'
+import { typeDefs as channelDefs } from './Channel/typeDefs'
+import { typeDefs as playlistDefs } from './Playlist/typeDefs'
+import { scalarDefs } from './scalars'
+import { enumDefs } from './enums'
 
 export const typeDefs = gql`
-  ${URLTypeDefinition}
+  ${scalarDefs}
   ${videoDefs}
+  ${channelDefs}
+  ${playlistDefs}
+  ${enumDefs}
+
+  interface Node {
+    id: ID!
+  }
 
   type GoogleCredentials {
     refresh_token: String
@@ -15,13 +25,8 @@ export const typeDefs = gql`
     scope: String
   }
 
-  type YoutubeChannel {
-    name: String
-  }
-
   type Query {
-    channel(input: ChannelInput): YoutubeChannel
-    listChannels(input: ListChannelInput): [YoutubeChannel]
+    node(id: ID!): Node
   }
 
   type Mutation {
@@ -35,8 +40,5 @@ export const typeDefs = gql`
 
   input ChannelInput {
     name: String
-  }
-  input ListChannelInput {
-    mine: Boolean
   }
 `
