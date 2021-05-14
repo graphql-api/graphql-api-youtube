@@ -1,7 +1,19 @@
 import { gql } from 'graphql-tag'
-import { URLTypeDefinition } from 'graphql-scalars'
 
 export const typeDefs = gql`
+  type YoutubeVideoCategorySnippet {
+    assignable: Boolean
+    channelId: String
+    title: String
+  }
+
+  type YoutubeVideoCategory {
+    id: ID!
+    kind: String
+    etag: String
+    snippet: YoutubeVideoCategorySnippet
+  }
+
   type YoutubeVideoThumbnail {
     url: URL
     width: Int
@@ -49,13 +61,9 @@ export const typeDefs = gql`
     processed
   }
 
-  enum YoutubeVideoPrivacyStatus {
-    public
-  }
-
   type YoutubeVideoStatus {
     uploadStatus: YoutubeVideoUploadStatus
-    privacyStatus: YoutubeVideoPrivacyStatus
+    privacyStatus: PrivacyStatus
     license: String
     embeddable: Boolean
     publicStatsViewable: Boolean
@@ -78,10 +86,9 @@ export const typeDefs = gql`
     topicCategories: [String]
   }
 
-  #  type YoutubeVideoRecordingDetails {}
-
   type YoutubeVideo {
     id: ID
+    url: URL
     kind: String
     etag: String
     snippet: YoutubeVideoSnippet
@@ -91,6 +98,7 @@ export const typeDefs = gql`
 
   extend type Query {
     listVideos: [YoutubeVideo]
+    listVideoCategories: [YoutubeVideoCategory]
     getRating: String
   }
 
