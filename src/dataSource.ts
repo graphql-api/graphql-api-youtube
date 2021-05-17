@@ -8,15 +8,6 @@ const OAuth2 = google.auth.OAuth2
 const GoogleAuth = google.auth.GoogleAuth
 const envKey = 'YOUTUBE_AUTH_TOKEN'
 
-type Base64String = string
-function base64(i: string): Base64String {
-  return Buffer.from(i, 'utf8').toString('base64')
-}
-
-function unbase64(i: Base64String): string {
-  return Buffer.from(i, 'base64').toString('utf-8')
-}
-
 export interface YoutubeDataSourceConfig<TContext> extends Credentials {
   context: TContext
   cache: KeyValueCache
@@ -50,26 +41,26 @@ export class YoutubeDataSource<TContext = any> extends DataSource<TContext> {
   constructor({
     client_id,
     client_secret,
-    redirect_uri
+    redirect_uri,
+    refresh_token
   }: {
     client_id: string
     client_secret: string
     redirect_uri?: string
+    refresh_token: string
   }) {
     super()
     // const credentialsString = unbase64(process.env.GOOGLE_CREDENTIALS)
     const oauth2Client = new OAuth2(client_id, client_secret, redirect_uri)
-    oauth2Client.setCredentials({
-      refresh_token: process.env.GOOGLE_REFRESH_TOKEN
-    })
+    oauth2Client.setCredentials({ refresh_token })
 
-    oauth2Client.on('tokens', (tokens) => {
-      if (tokens.refresh_token) {
-        // store the refresh_token in my database!
-        console.log('FRESH', tokens)
-      }
-      console.log('TOKENS', tokens)
-    })
+    // oauth2Client.on('tokens', (tokens) => {
+    //   if (tokens.refresh_token) {
+    //     // store the refresh_token in my database!
+    //     console.log('FRESH', tokens)
+    //   }
+    //   console.log('TOKENS', tokens)
+    // })
     this.auth = oauth2Client
 
     const auth = new GoogleAuth({
@@ -90,9 +81,7 @@ export class YoutubeDataSource<TContext = any> extends DataSource<TContext> {
   }
 
   async getToken(authCode) {
-    console.log('GET AUTH TOKEN', authCode)
     const token = await this.auth.getToken(authCode)
-    console.log('TOKEN', token)
     return token
   }
 

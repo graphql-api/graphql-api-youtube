@@ -1,4 +1,11 @@
 {
   "name": "@graphql-api/youtube",
-  "version": "0.0.1"
+  "version": "0.0.1",
+  "dependencies": {
+    "googleapis": "^73.0.0"
+  },
+  "peerDependencies": {
+    "graphql": "^15.5.0",
+    "apollo-server-core": "^2.24.0"
+  }
 }
