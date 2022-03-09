@@ -118,7 +118,7 @@ export class YoutubeDataSource<TContext = any> extends DataSource<TContext> {
     })
     return response.data.items
   }
-
+  /** @ts-ignore 
   async updateChannel({
     id,
     brandingSettings,
@@ -131,7 +131,7 @@ export class YoutubeDataSource<TContext = any> extends DataSource<TContext> {
         localizations
       }
     })
-  }
+  } */
 
   async listChannelVideos({ username }: { username: string }) {
     const contentDetails = await this.youtube.channels.list({
@@ -199,10 +199,11 @@ export class YoutubeDataSource<TContext = any> extends DataSource<TContext> {
     })
     return response.data.items
   }
-
+  /** @ts-ignore 
   async getRating() {
     return this.youtube.videos.getRating()
   }
+  */
 
   /** YouTube Analytics API */
 

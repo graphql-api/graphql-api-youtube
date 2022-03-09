@@ -1,4 +1,4 @@
-import { YoutubeDataSource } from './dataSource'
+import { YoutubeDataSource } from './datasource'
 export { resolvers } from './resolvers'
 export { typeDefs } from './typeDefs'
 
